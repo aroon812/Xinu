@@ -12,7 +12,7 @@ syscall	semreset(sid32 sem, int32 count)
 	intmask	mask;			/* saved interrupt mask		*/
 	struct	sentry *semptr;		/* ptr to semaphore table entry */
 	pid32	pid;			/* ID of a waiting process	*/
-	struct queue *semqueue; 	/* semaphore's process queue */
+	struct Queue *semqueue; 	/* semaphore's process queue ID */
 
 	mask = disable();
 

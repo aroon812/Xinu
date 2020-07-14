@@ -13,7 +13,7 @@ local	int newpid();
  * @param name		name for debugging
  * @param nargs		number of args that follow
  */
-pid32	create(void *procaddr, uint32 ssize, char *name, uint32 nargs, ...)
+pid32	create(void *procaddr, uint32 ssize, pri16 priority, char *name, uint32 nargs, ...)
 {
 	uint32		savsp, *pushsp;
 	intmask 	mask;    	// interrupt mask
@@ -36,6 +36,7 @@ pid32	create(void *procaddr, uint32 ssize, char *name, uint32 nargs, ...)
 
 	prcount++;
 	prptr = &proctab[pid];
+	prptr->prprio = priority;
 
 	// initialize process table entry for new process
 	prptr->prstate = PR_SUSP;	// initial state is suspended

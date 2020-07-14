@@ -29,8 +29,7 @@ syscall	wait(sid32 sem)
 		prptr = &proctab[currpid];
 		prptr->prstate = PR_WAIT;		// set state to waiting
 		prptr->prsem = sem;			// record semaphore ID
-//DC		enqueue(currpid,semptr->squeue,0);	// enqueue on semaphore
-		enqueue(currpid,semptr->squeue);	// enqueue on semaphore
+		enqueue(currpid,semptr->squeue,0);	// enqueue on semaphore
 		resched();				//   and reschedule
 	}
 

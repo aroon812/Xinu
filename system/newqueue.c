@@ -10,13 +10,13 @@
 struct queue *newqueue(void)
 {
 	//allocate memory for a new Queue structure (required to be on heap)
-  struct queue *newqueue = (struct queue*) malloc(sizeof(struct queue));
+	struct queue *newQueue = (struct queue*) malloc(sizeof(struct queue));
 
 	//initialize the structure
-  newqueue->head = NULL;
-  newqueue->tail = NULL;
-  newqueue->size = 0;
+	newQueue->head = NULL;
+	newQueue->tail = NULL;
+	newQueue->size = 0;
 
-	//return pointer to the structure
-  return newqueue;
+	//return pointer
+	return newQueue;
 }

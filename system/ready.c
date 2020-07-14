@@ -13,18 +13,16 @@ struct queue *readyqueue;	/** ready queue */
 status	ready(pid32 pid, bool8 resch)
 {
 	register struct procent *prptr;
-
+	
 	if (isbadpid(pid))
 		return(SYSERR);
 
-	//set process state to indicate ready and add to ready list
+	// set process state to indicate ready and add to ready list
 	prptr = &proctab[pid];
 
 	//set the process' state pointed by prptr to "ready"
-	prptr->prstate = PR_READY;
-
-	//enqueue the process
-	enqueue(pid ,readyqueue);
+	prptr->prstate = PR_READY;	//DC REMOVE
+	enqueue(pid, readyqueue, prptr->prprio); //DC REMOVE
 
 	if (resch == RESCHED_YES)
 		resched();

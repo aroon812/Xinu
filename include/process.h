@@ -46,6 +46,7 @@
 /* Definition of the process table (multiple of 32 bits) */
 
 struct procent {		/* entry in the process table		*/
+	pri16 prprio;
 	uint16	prstate;	/* process state: PR_CURR, etc.		*/
 	char	*prstkptr;	/* saved stack pointer			*/
 	char	*prstkbase;	/* base of run time stack		*/

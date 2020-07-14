@@ -1,5 +1,6 @@
 #!/bin/bash
+
 make clean
-make
+make 
 ./upload.sh
 sudo minicom

@@ -80,7 +80,7 @@ void	nulluser(void)
 	enable();
 
 	//spawn a process running main() from main.c
-	ready(create((void*) main, INITSTK, "MAIN1", 2, 0, NULL), FALSE);
+	ready(create((void*) main, INITSTK, INITPRIO, "MAIN1", 2, 0, NULL), FALSE);
 
 	//schedule the above processes
 	while (TRUE)
@@ -160,6 +160,7 @@ static	void	sysinit(void)
 
 	prptr = &proctab[NULLPROC];
 	prptr->prstate = PR_CURR;
+	prptr->prprio = 0;	//DC
 	strncpy(prptr->prname, "prnull", 7);
 	prptr->prstkbase = getstk(NULLSTK);
 	prptr->prstklen = NULLSTK;

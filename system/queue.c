@@ -10,67 +10,49 @@
 void	printqueue(struct queue *q)
 {
 	//print all contents from head to tail
-    struct qentry *qcurr = q->head;
-
-    kprintf("[");
-    int i;
-    for(i = 0; i < q->size; i++){
-      if(qcurr->pid != EMPTY){
-        kprintf("(pid=%d)", qcurr->pid);
-        if(i < q->size-1){
-          kprintf(", ");
-        }
-        qcurr = qcurr->qnext;
-      }
-    }
-    kprintf("]\n");
+	kprintf("[");
+	if (nonempty(q))
+	{
+		struct qentry *curr = q->head;
+		while (curr != NULL)
+		{
+			kprintf("(pid=%u)", curr->pid);
+			curr = curr->next;
+		}
+	}
+	kprintf("]\n");
 }
 
 /**
  * Checks whether queue is empty
  * @param q	Pointer to a queue
- * @return TRUE if true, FALSE otherwise
+ * @return 1 if true, 0 otherwise
  */
- bool8	isempty(struct queue *q)
- {
-   if(q != NULL){
-     if(q->size == 0){
-       return TRUE;
-     }
-   }
-   return FALSE;
- }
+bool8	isempty(struct queue *q)
+{
+	return (q->size == 0);
+}
 
- /**
+/**
  * Checks whether queue is nonempty
  * @param q	Pointer to a queue
- * @return TRUE if true, FALSE otherwise
+ * @return 1 if true, 0 otherwise
  */
 bool8	nonempty(struct queue *q)
 {
-	//don't just check q's size because q could be NULL
-  if(q != NULL){
-    if(q->size == 0){
-      return FALSE;
-    }
-  }
-  return TRUE;
+	return (q == NULL || q->size > 0);
 }
+
 
 /**
  * Checks whether queue is full
  * @param q	Pointer to a queue
- * @return TRUE if true, FALSE otherwise
+ * @return 1 if true, 0 otherwise
  */
 bool8	isfull(struct queue *q)
 {
 	//check if there are at least NPROC processes in the queue
-  if(q != NULL){
-    if(q->size >= NPROC){
-      return TRUE;
-    }
-  }
-  return FALSE;
+	return (q->size >= NPROC);
 }
 
 
@@ -81,36 +63,58 @@ bool8	isfull(struct queue *q)
  *
  * @return pid on success, SYSERR otherwise
  */
-pid32 enqueue(pid32 pid, struct queue *q)
+pid32 enqueue(pid32 pid, struct queue *q, int32 key)
 {
-        //check if queue is full and if pid is illegal, and return SYSERR if either is true
-        if(isfull(q) || pid < 0 || pid >= NPROC){
-          return SYSERR;
-        }
+	if (isfull(q) || isbadpid(pid)) {
+		return SYSERR;
+	}
+	//allocate space on heap for a new qentry
+	struct qentry *newEntry = (struct qentry*) malloc(sizeof(struct qentry));
 
-        //allocate space on heap for a new QEntry
-        struct qentry *newentry = (struct qentry*) malloc(sizeof(struct qentry));
+	//initialize the new QEntry
+	newEntry->pid = pid;
+	newEntry->prev = NULL;
+	newEntry->next = NULL;
+	newEntry->key = key;
 
-        //initialize the new QEntry
-        newentry->pid = pid;
-        newentry->qprev = q->tail;
-        newentry->qnext = NULL;
+	//if there are no processes on the queue
+	if (q->head == NULL){
+		q->head = newEntry;
+		q->tail = newEntry;
+	}
+	//if priority for newEntry is greater than the head
+	else if (newEntry->key > q->head->key){
+		newEntry->next = q->head;
+		newEntry->next->prev = newEntry;
+		q->head = newEntry;
+	}
+	else{
+		//otherwise, search for the place to put the new entry
+		struct qentry *current = q->head;
+		if (current->next != NULL){	
+			while (current->next->key >= newEntry->key){
+				current = current->next;
+			}
+		}
 
-        if(q->tail == NULL && q->head == NULL){
-          q->head = newentry;
-        }
-        else{
-          q->tail->qnext = newentry;
-        }
+		
+		newEntry->next = current->next;
+		if (current->next != NULL){
+			newEntry->next->prev = newEntry;
+		}
 
-        //insert into tail of queue
-        q->tail = newentry;
-        q->size++;
-        
-        //return the pid on success
-        return pid;
+		current->next = newEntry;
+		newEntry->prev = current;
+
+		if (newEntry->next == NULL){
+			q->tail = newEntry;
+		}
+		
+	}
+
+	q->size++;
+	return pid;
 }
-
 
 /**
  * Remove and return the first process on a list
@@ -119,24 +123,35 @@ pid32 enqueue(pid32 pid, struct queue *q)
  */
 pid32 dequeue(struct queue *q)
 {
-        //return EMPTY if queue is empty
-        if(isempty(q)){
-          return EMPTY;
-        }
-        //get the head entry of the queue
-        struct qentry *head = q->head;
+	pid32 pid;	
 
-        //unlink the head entry from the rest
-        q->head = q->head->qnext;
-        q->head->qprev = NULL;
-        pid32 entrypid = head->pid;
+	if (isempty(q)) {
+		return EMPTY;
+	}
 
-        //free up the space on the heap
-        free(head, sizeof(struct qentry));
-        q->size--;
+	//save pointer to head entry
+	struct qentry *head = q->head;
+	struct qentry *newHead = head->next;
 
-        //return the pid on success
-        return entrypid;
+	//save pid of head entry
+	pid = head->pid;
+
+	//unlink head from queue
+	if (newHead != NULL)
+		newHead->prev = NULL;
+	else
+		q->tail = NULL;
+
+	//update queue to point head pointer at newhead
+	q->head = newHead;
+
+	//decrement size of queue
+	q->size--;
+
+	//deallocate head entry
+	free(head, sizeof(struct qentry));
+
+	return pid;
 }
 
 
@@ -148,24 +163,16 @@ pid32 dequeue(struct queue *q)
  */
 struct qentry *getbypid(pid32 pid, struct queue *q)
 {
-	//return NULL if queue is empty or if an illegal pid is given
-  if(isempty(q) || pid < 0 || pid >= NPROC){
-    return NULL;
-  }
+	if (isempty(q))
+		return NULL;
 
-  struct qentry *entry = q->head;
 	//find the qentry with the given pid
-  //return a pointer to it
-  int i;
-  for(i = 0; i < q->size; i++){
-    if(entry->pid == pid){
-      return entry;
-    }
-    entry = entry->qnext;
-  }
+	struct qentry *currEntry = q->head;
+	while(currEntry != NULL && currEntry->pid != pid)
+		currEntry = currEntry->next;
 
-  //pid not found return NULL
-  return NULL;
+	//return a pointer to it
+	return currEntry;
 }
 
 /**
@@ -175,13 +182,11 @@ struct qentry *getbypid(pid32 pid, struct queue *q)
  */
 pid32	getfirst(struct queue *q)
 {
-	//return EMPTY if queue is empty
-  if(q->size == 0){
-    return EMPTY;
-  }
+	if (isempty(q)) {
+		return EMPTY;
+	}
 
-	//remove process from head of queue and return its pid
-  return dequeue(q);
+	return dequeue(q);
 }
 
 /**
@@ -191,20 +196,14 @@ pid32	getfirst(struct queue *q)
  */
 pid32	getlast(struct queue *q)
 {
-	//return EMPTY if queue is empty
-  if(isempty(q)){
-    return EMPTY;
-  }
+	if (isempty(q)) {
+		return EMPTY;
+	}
 
-	//remove process from tail of queue and return its pid
-  struct qentry *last = q->tail;
-  q->tail = q->tail->qprev;
-  q->tail->qnext = NULL;
-  pid32 pid = last->pid;
-  free(last, sizeof(struct qentry));
-  q->size--;
-  return pid;
+	return remove(q->tail->pid, q);
 }
+
+
 
 /**
  * Remove a process from an arbitrary point in a queue
@@ -214,36 +213,40 @@ pid32	getlast(struct queue *q)
  */
 pid32	remove(pid32 pid, struct queue *q)
 {
-	//return EMPTY if queue is empty
-  if(isfull(q)){
-    return EMPTY;
-  }
-	//return SYSERR if pid is illegal
-  if(pid < 0 || pid >= NPROC){
-    return SYSERR;
-  }
+	if (isempty(q))
+	{
+		return EMPTY;
+	}
 
-	//remove process identified by pid parameter from the queue and return its pid
-  struct qentry *entry = q->head;
-  //find the qentry with the given pid
-  //return a pointer to it
-  int i;
-  for(i = 0; i < q->size; i++){
-    if(entry->pid == pid){
-      struct qentry *prev = entry->qprev;
-      struct qentry *next = entry->qnext;
+	//find the entry with pid
+	struct qentry *currEntry = q->head;
+	while (currEntry != NULL)
+	{
+		//found it!
+		if (currEntry->pid == pid)
+		{
+			//unlink: find next and prev entries
+			struct qentry *next = currEntry->next;
+			struct qentry *prev = currEntry->prev;
+			if (next != NULL)
+				next->prev = prev;
+			if (prev != NULL)
+				prev->next = next;
 
-      prev->qnext = entry->qnext;
-      next->qprev = entry->qprev;
+			//update queue structure
+			if (currEntry == q->head)
+				q->head = prev;
+			if (currEntry == q->tail)
+				q->tail = next;
+			q->size--;
 
-      pid32 entrypid = entry->pid;
-      free(entry, sizeof(struct qentry));
-      q->size--;
-      return entrypid;
-    }
-    entry = entry->qnext;
-  }
+			//deallocate current entry
+			free(currEntry, sizeof(struct qentry));
+			return pid;
+		}
+		currEntry = currEntry->next;
+	}
 
-  //if pid does not exist in the queue, return SYSERR
-  return SYSERR;
+	//if pid does not exist in the queue, return SYSERR
+	return SYSERR;
 }
