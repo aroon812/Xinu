@@ -26,6 +26,7 @@ typedef	byte	bool8;		/* Boolean type				*/
 typedef	uint16	intmask;	/* saved interrupt mask			*/
 typedef	int32	ibid32;		/* index block ID (used in file system)	*/
 typedef	int32	dbid32;		/* data block ID (used in file system)	*/
+typedef uint32 	mutex_t;	/* MUTEX_T */
 
 /* Function declaration return types */
 
@@ -65,8 +66,6 @@ typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 
 #define	NULLSTK		16384	/* stack size for null process		*/
 
-#define AGING TRUE
-
 /* Prototypes of I/O functions used throughout the kernel */
 
 syscall	kprintf(char *fmt, ...);
@@ -75,3 +74,7 @@ syscall	kgetc(void);
 
 /* global list of ready processes*/
 extern	struct queue	*readyqueue;
+
+/* config params */
+#define	AGING	TRUE		/* enable or disable aging? */
+#define QUANTUM	10 //2 //10		/* 10ms quantum length */

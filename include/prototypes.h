@@ -314,3 +314,11 @@ extern	void	xdone(void);
 
 /* in file yield.c */
 extern	syscall	yield(void);
+
+/* in file testandset.S */
+extern uint32	test_and_set(mutex_t *);
+
+/* in file mutex.c */
+extern	void	mutex_lock(mutex_t *);
+extern	void	mutex_unlock(mutex_t *);
+

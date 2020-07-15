@@ -10,10 +10,11 @@ local	int newpid();
  * create a process to start running a procedure
  * @param procaddr	procedure address
  * @param ssize		stack size in words
+ * @param prio		priority of new process
  * @param name		name for debugging
  * @param nargs		number of args that follow
  */
-pid32	create(void *procaddr, uint32 ssize, pri16 priority, char *name, uint32 nargs, ...)
+pid32	create(void *procaddr, uint32 ssize, pri16 prio, char *name, uint32 nargs, ...)
 {
 	uint32		savsp, *pushsp;
 	intmask 	mask;    	// interrupt mask
@@ -36,10 +37,10 @@ pid32	create(void *procaddr, uint32 ssize, pri16 priority, char *name, uint32 na
 
 	prcount++;
 	prptr = &proctab[pid];
-	prptr->prprio = priority;
 
 	// initialize process table entry for new process
 	prptr->prstate = PR_SUSP;	// initial state is suspended
+	prptr->prprio = prio;		//DC process
 	prptr->prstkbase = (char *)saddr;
 	prptr->prstklen = ssize;
 	prptr->prname[PNMLEN-1] = NULLCH;

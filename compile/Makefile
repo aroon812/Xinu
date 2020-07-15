@@ -49,15 +49,13 @@ SRC_FILES =
 #------------------------------------------------------------------------
 
 SYSTEM_SFILES =								\
-	start.S		ctxsw.S		intr.S
-#SYSTEM_SFILES =								\
-#	start.S		ctxsw.S		clkint.S	intr.S
+	start.S		ctxsw.S		intr.S		testandset.S	clkint.S
 
 SYSTEM_CFILES =								\
-	bufinit.c		panic.c		\
+	clkinit.c	mutex.c		bufinit.c	panic.c		\
 	close.c		conf.c		control.c	\
 	create.c	freebuf.c	freemem.c	getbuf.c	\
-	getc.c		getdev.c	getmem.c	\
+	getc.c		getdev.c	getmem.c		\
 	getpid.c	getstk.c	initialize.c 	\
 	i386.c		ioerr.c		\
 	ionull.c	kill.c		kprintf.c	main.c		\
@@ -203,6 +201,9 @@ ${COMPS}:
 
 ../system/clkint.o: ../system/clkint.S
 	${CPP} ${SDEFS} ../system/clkint.S | ${AS} -o ../system/clkint.o
+
+../system/testandset.o: ../system/testandset.S
+	${CPP} ${SDEFS} ../system/testandset.S | ${AS} -o ../system/testandset.o
 
 ../system/ctxsw.o: ../system/ctxsw.S
 	${CPP} ${SDEFS} ../system/ctxsw.S | ${AS} -o ../system/ctxsw.o

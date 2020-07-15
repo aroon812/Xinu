@@ -186,6 +186,8 @@ static	void	sysinit(void)
 	/* Initialize the PCI bus */
 
 	pci_init();
+	
+	clkinit(); /* initialize clock */
 
 	for (i = 0; i < NDEVS; i++) {
 		if (! isbaddev(i)) {
@@ -193,6 +195,7 @@ static	void	sysinit(void)
 			(devptr->dvinit) (devptr);
 		}
 	}
+
 	return;
 }
 

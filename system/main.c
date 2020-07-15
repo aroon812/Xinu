@@ -4,54 +4,85 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void	bigargs(int32 argc, int32 *argv)
+#define N 5	//number of philosophers and forks
+
+//TODO - locks must be declared and initialized here
+mutex_t forks[N] = {FALSE};
+mutex_t printLock = FALSE;
+
+/**
+ * Delay for a random amount of time
+ * @param alpha delay factor
+ */
+void	holdup(int32 alpha)
 {
-	int a = argv[0];
-	int b = argv[1];
-	int c = argv[2];
-	int d = argv[3];
-	int e = argv[4];
-	int f = argv[5];
-	kprintf("bigargs(%d, %d, %d, %d, %d, %d) == %d\r\n", a, b, c, d, e, f, a+b+c+d+e+f);
+	long delay = rand() * alpha;
+	while (delay-- > 0)
+		;	//no op
+}
+
+/**
+ * Eat for a random amount of time
+ */
+void	eat()
+{
+	holdup(10000);
+}
+
+/**
+ * Think for a random amount of time
+ */
+void	think()
+{
+	holdup(1000);
 }
 
 
-void	printpid(int32 argc, int32 *argv)
-{
-	int i;
-	for (i=0; i<argv[0]; i++)
-	{
-		kprintf("This is process %d (%s)\r\n", currpid, proctab[currpid].prname);
-		resched();
-	}
-}
 
-void longProcess(){
-	int i;
-	for (i = 0; i < 1000; i++)
+/**
+ * Philosopher's code
+ * @param phil_id philosopher's id
+ */
+void	philosopher(uint32 phil_id)
+{
+	uint32 right = (phil_id+N-1)%N;	//TODO - right fork
+	uint32 left = phil_id;	//TODO - left fork
+
+	srand(phil_id);
+
+	while (TRUE)
 	{
-		kprintf("i: %u\n", i);
-		resched();
+		int r = rand()%100;
+		if(r < 70) { //think 70% of the time
+			mutex_lock(&printLock); // lock for printf
+			kprintf("Philosopher %d thinking: zzzzzZZZz\n", phil_id);
+			mutex_unlock(&printLock); // unlock printf
+			think();
+		} else { //(attempt to) eat 30% of the time
+			mutex_lock(&forks[right]); // try to grab right fork
+			if(forks[left]==FALSE) { // try to grab left fork
+				mutex_lock(&forks[left]);
+				mutex_lock(&printLock); // lock printf
+				kprintf("Philosopher %d eating: nom nom nom\n", phil_id);
+				mutex_unlock(&printLock); // unlock printf
+				mutex_unlock(&forks[left]);
+			} // don't grab left fork if already taken
+			mutex_unlock(&forks[right]); 
+		}
 	}
 }
 
 int	main(uint32 argc, uint32 *argv)
 {
-	static uint32 args[] = {1, 2, 3};
-	static uint32 *args1 = args;
-	static uint32 args2[] = {10, 20, 30, 40, 50, 60};
+	// int i;
+	// for(i=0;i<N;i++) kprintf("i=%d: %d",i,forks[i]);
 
-	kprintf("Hello XINU WORLD!\r\n");
-	ready(create((void*) printpid, INITSTK, 10, "1", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "2", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "3", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "4", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "5", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "6", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "7", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "8", 2, 1, args1++), FALSE);
-	ready(create((void*) printpid, INITSTK, 10, "9", 2, 1, args1++), FALSE);
-	ready(create((void*) bigargs, INITSTK, 5, "BIGARGS", 2, 6, args2), FALSE);
+	//do not change
+	ready(create((void*) philosopher, INITSTK, 15, "Ph1", 1, 0), FALSE);
+	ready(create((void*) philosopher, INITSTK, 15, "Ph2", 1, 1), FALSE);
+	ready(create((void*) philosopher, INITSTK, 15, "Ph3", 1, 2), FALSE);
+	ready(create((void*) philosopher, INITSTK, 15, "Ph4", 1, 3), FALSE);
+	ready(create((void*) philosopher, INITSTK, 15, "Ph5", 1, 4), FALSE);
 
 	return 0;
 }

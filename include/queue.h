@@ -12,22 +12,20 @@
 #define	EMPTY	(-1)		/* null value for qnext or qprev index	*/
 
 
-//TODO - define queue's data members
 struct queue
 {
-	struct qentry *head; // TODO - pointer to head qentry
-	struct qentry *tail; // TODO - pointer to tail qentry
-	int32	size;	// TODO - size of queue
+	struct qentry *head;	// pointer to head qentry
+	struct qentry *tail;	// pointer to tail qentry
+	uint32	size;		// size of queue
 };
 
 
-//TODO - define a queue entry's data members
 struct qentry
 {
-	int32 key;
-	pid32 pid;	// TODO - process ID
-	struct qentry *next;	// TODO - other members
+	pid32	pid;	// process ID
+	struct qentry *next;
 	struct qentry *prev;
+	int32	key;	// TODO - added key
 };
 
 
@@ -42,6 +40,6 @@ pid32	getfirst(struct queue *q);
 pid32	getlast(struct queue *q);
 pid32	remove(pid32 pid, struct queue *q);
 pid32	dequeue(struct queue *q);
-pid32	enqueue(pid32 pid, struct queue *q, int32 priority);
+pid32	enqueue(pid32 pid, struct queue *q, int32 key);	//TODO - added key param
 struct queue	*newqueue();
 struct qentry	*getbypid(pid32 pid, struct queue *q);

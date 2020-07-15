@@ -9,16 +9,16 @@
  */
 void	printqueue(struct queue *q)
 {
-	//print all contents from head to tail
 	kprintf("[");
 	if (nonempty(q))
 	{
 		struct qentry *curr = q->head;
 		while (curr != NULL)
 		{
-			kprintf("(pid=%u)", curr->pid);
+			kprintf("(key=%d, pid=%u)", curr->key, curr->pid);
 			curr = curr->next;
 		}
+		kprintf(" queuesize=%u", q->size);
 	}
 	kprintf("]\n");
 }
@@ -51,70 +51,60 @@ bool8	nonempty(struct queue *q)
  */
 bool8	isfull(struct queue *q)
 {
-	//check if there are at least NPROC processes in the queue
 	return (q->size >= NPROC);
 }
 
-
 /**
- * Insert a process at the tail of a queue
- * @param pid	ID process to insert
+ * Insert a process into a queue in descending key order
+ * @param pid	ID of process to insert
  * @param q	Pointer to the queue to use
- *
- * @return pid on success, SYSERR otherwise
+ * @param key	key for the inserted process
  */
-pid32 enqueue(pid32 pid, struct queue *q, int32 key)
+pid32  enqueue(pid32 pid, struct queue *q, int32 key)
 {
-	if (isfull(q) || isbadpid(pid)) {
-		return SYSERR;
-	}
-	//allocate space on heap for a new qentry
+        if (isfull(q)) {
+                return SYSERR;
+        }
+
+	//create entry
 	struct qentry *newEntry = (struct qentry*) malloc(sizeof(struct qentry));
-
-	//initialize the new QEntry
 	newEntry->pid = pid;
-	newEntry->prev = NULL;
-	newEntry->next = NULL;
 	newEntry->key = key;
+	newEntry->next = NULL;
+	newEntry->prev = NULL;
 
-	//if there are no processes on the queue
-	if (q->head == NULL){
+	//find insert location
+	struct qentry *currEntry;	// runs through items in a queue
+	struct qentry *prevEntry;	// holds previous entry
+
+	currEntry = q->head;
+	while (currEntry != NULL && currEntry->key >= key)
+		currEntry = currEntry->next;
+
+	if (currEntry == NULL)		//goes in the tail of the queue
+		prevEntry = q->tail;
+	else
+		prevEntry = currEntry->prev;
+
+	// insert process between curr node and previous node
+	newEntry->prev = prevEntry;
+	newEntry->next = currEntry;
+
+	if (prevEntry != NULL)
+		prevEntry->next = newEntry;
+	if (currEntry != NULL)
+		currEntry->prev = newEntry;
+
+	// update queue
+	if (NULL == prevEntry)	//new head
 		q->head = newEntry;
+	if (NULL == currEntry)	//new tail
 		q->tail = newEntry;
-	}
-	//if priority for newEntry is greater than the head
-	else if (newEntry->key > q->head->key){
-		newEntry->next = q->head;
-		newEntry->next->prev = newEntry;
-		q->head = newEntry;
-	}
-	else{
-		//otherwise, search for the place to put the new entry
-		struct qentry *current = q->head;
-		if (current->next != NULL){	
-			while (current->next->key >= newEntry->key){
-				current = current->next;
-			}
-		}
+	q->size++;			//increment size
 
-		
-		newEntry->next = current->next;
-		if (current->next != NULL){
-			newEntry->next->prev = newEntry;
-		}
-
-		current->next = newEntry;
-		newEntry->prev = current;
-
-		if (newEntry->next == NULL){
-			q->tail = newEntry;
-		}
-		
-	}
-
-	q->size++;
-	return pid;
+       	return OK;
 }
+
 
 /**
  * Remove and return the first process on a list
@@ -123,7 +113,7 @@ pid32 enqueue(pid32 pid, struct queue *q, int32 key)
  */
 pid32 dequeue(struct queue *q)
 {
-	pid32 pid;	
+	pid32	pid;	//ID of process removed
 
 	if (isempty(q)) {
 		return EMPTY;
@@ -166,12 +156,10 @@ struct qentry *getbypid(pid32 pid, struct queue *q)
 	if (isempty(q))
 		return NULL;
 
-	//find the qentry with the given pid
 	struct qentry *currEntry = q->head;
 	while(currEntry != NULL && currEntry->pid != pid)
 		currEntry = currEntry->next;
 
-	//return a pointer to it
 	return currEntry;
 }
 
@@ -189,6 +177,7 @@ pid32	getfirst(struct queue *q)
 	return dequeue(q);
 }
 
+
 /**
  * Remove a process from the end of a queue (pid assumed valid with no check)
  * @param q	Pointer to the queue
@@ -204,7 +193,6 @@ pid32	getlast(struct queue *q)
 }
 
 
-
 /**
  * Remove a process from an arbitrary point in a queue
  * @param pid	ID of process to remove
@@ -214,9 +202,7 @@ pid32	getlast(struct queue *q)
 pid32	remove(pid32 pid, struct queue *q)
 {
 	if (isempty(q))
-	{
 		return EMPTY;
-	}
 
 	//find the entry with pid
 	struct qentry *currEntry = q->head;
@@ -235,9 +221,9 @@ pid32	remove(pid32 pid, struct queue *q)
 
 			//update queue structure
 			if (currEntry == q->head)
-				q->head = prev;
+				q->head = next;
 			if (currEntry == q->tail)
-				q->tail = next;
+				q->tail = prev;
 			q->size--;
 
 			//deallocate current entry
@@ -247,6 +233,5 @@ pid32	remove(pid32 pid, struct queue *q)
 		currEntry = currEntry->next;
 	}
 
-	//if pid does not exist in the queue, return SYSERR
 	return SYSERR;
 }
