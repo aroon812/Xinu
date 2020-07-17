@@ -3,7 +3,7 @@
 /* Maximum number of processes in the system */
 
 #ifndef NPROC
-#define	NPROC		100
+#define	NPROC		20
 #endif
 
 /* Process state constants */
@@ -56,7 +56,7 @@ struct procent {		/* entry in the process table		*/
 	umsg32	prmsg;		/* message sent to this process		*/
 	bool8	prhasmsg;	/* nonzero iff msg is valid		*/
 	int16	prdesc[NDESC];	/* device descriptors for process	*/
-	pri16	prprio;		// TODO added priority
+	pri16	prprio;		/* priority */
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

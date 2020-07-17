@@ -58,7 +58,7 @@ defevec:
 		.long	_Xint1		/* Debug exceptions		*/
 		.long	_Xint2		/* Nonmaskable interrupt	*/
 		.long	_Xint3		/* Breakpoint (one-byte INT 3	*/
-					/*    instruction)		*/	
+					/*    instruction)		*/
 		.long	_Xint4		/* Overflow (INTO instruction)	*/
 		.long	_Xint5		/* Bounds check (BOUND instr)	*/
 		.long	_Xint6		/* Invalid opcode		*/

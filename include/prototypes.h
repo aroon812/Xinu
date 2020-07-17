@@ -38,7 +38,7 @@ extern	void	ctxsw(void *, void *);
 extern	uint32	dot2ip(char *, uint32 *);
 
 /* in file queue.c */
-extern	pid32	enqueue(pid32, struct queue *q, int32 key);	//TODO
+extern	pid32	enqueue(pid32, struct queue *q, int32 key);
 
 /* in file intutils.S */
 extern	intmask	disable(void);
@@ -322,3 +322,8 @@ extern uint32	test_and_set(mutex_t *);
 extern	void	mutex_lock(mutex_t *);
 extern	void	mutex_unlock(mutex_t *);
 
+/* in file lock.c */
+extern	syscall	lock_create();
+extern	syscall	lock_delete(lid32);
+extern	syscall	acquire(lid32);
+extern	syscall	release(lid32);

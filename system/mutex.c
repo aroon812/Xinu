@@ -6,8 +6,8 @@
  */
 void mutex_lock(mutex_t *lock)
 {
-	//TODO - write a busy-wait loop using test_and_set
-	while(test_and_set(lock))
+	//TODO - write a busy loop using test_and_test(lock)!!
+	while (test_and_set(lock) == 1)
 		;
 }
 

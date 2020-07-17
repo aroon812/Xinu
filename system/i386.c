@@ -112,7 +112,7 @@ void	pseg(struct sd *psd)
 	base = ((int)psd->sd_hibase) << 24;
 	base |= ((int)psd->sd_midbase)<< 16;
 	base |= psd->sd_lobase;
-	
+
 	kprintf("\nby field: base %X limit %d perm %d\n", base, limit,
 		psd->sd_perm);
 	kprintf("iscode %d isapp %d dpl %d present %d avl %d\n",

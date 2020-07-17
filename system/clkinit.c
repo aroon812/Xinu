@@ -16,17 +16,17 @@ void	clkinit(void)
 	// TODO -- program the timer!
 	// 	Use Counter 0, 16-bit binary counter, rate generator mod, read/write
 	//	least significant byte first, followed by most significant byte
-	outb(CLKCNTL, 0x34); // 52 in decimal 00110100 in binary
+	outb(CLKCNTL, 0x34);
 
 	// TODO -- set initial value of the countdown!
-	//	We want to set countdown in such a way that
+	//	clock rate is 1.193 Mhz (ticks per second). We to set countdown in such a way that
 	//	the timer goes off every 1ms
-	uint16	countdown = 1193; //1193 //50
+	uint16	countdown = 1193;
 
 	// TODO -- Now program the initial value for countdown
 	// 	must write in two operations
-	outb(CLOCK0, (char)(countdown & 255));	//write least significant byte of countdown
-	outb(CLOCK0, (char)(countdown>>8));	//write most significant byte of countdown
+	outb(CLOCK0, (char) (0xff & countdown));	//write least significant byte of countdown
+	outb(CLOCK0, (char) (0xff & countdown >> 8));	//write most significant byte of countdown
 
 
 	// Set interrupt vector for clock to invoke clkint

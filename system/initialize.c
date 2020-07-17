@@ -19,6 +19,8 @@ static	void sysinit(void);	/* initializes system structures	*/
 struct	procent	proctab[NPROC];	/* Process table			*/
 struct	sentry	semtab[NSEM];	/* Semaphore table			*/
 struct	memblk	memlist;	/* List of free memory blocks		*/
+struct lockentry locktab[NLOCK];
+int RAG[NLOCK+NPROC][NLOCK+NPROC];
 
 /* Active system status */
 
@@ -102,11 +104,21 @@ void	nulluser(void)
 
 static	void	sysinit(void)
 {
-	int32	i;
 	struct	procent	*prptr;		/* ptr to process table entry	*/
 	struct	dentry	*devptr;	/* ptr to device table entry	*/
 	struct	sentry	*semptr;	/* prr to semaphore table entry	*/
 	struct	memblk	*memptr;	/* ptr to memory block		*/
+	struct lockentry *lockptr; /* ptr to lock table entry */
+
+	int length = NLOCK+NPROC;
+	int i;
+	int j;
+
+	for (i = 0; i < length; i++){
+		for (j = 0; j < length; j++){
+			RAG[i][j] = 0;
+		}
+	}
 
 	/* Initialize the interrupt vectors */
 
@@ -176,9 +188,18 @@ static	void	sysinit(void)
 		semptr->squeue = newqueue();
 	}
 
+	/* Initializa locks */
+	for (i = 0; i < NLOCK; i++){
+		lockptr = &locktab[i];
+		lockptr->state = LOCK_FREE;
+		lockptr->lock = FALSE;
+		lockptr->wait_queue = newqueue();
+	}
+
 	/* Initialize buffer pools */
 
 	bufinit();
+
 	/* Create a ready list for processes */
 
 	readyqueue = newqueue();
@@ -186,8 +207,12 @@ static	void	sysinit(void)
 	/* Initialize the PCI bus */
 
 	pci_init();
-	
-	clkinit(); /* initialize clock */
+
+        /* Initialize the timer! */
+
+	clkinit();
+
+	/* Initialize device table */
 
 	for (i = 0; i < NDEVS; i++) {
 		if (! isbaddev(i)) {
@@ -195,7 +220,6 @@ static	void	sysinit(void)
 			(devptr->dvinit) (devptr);
 		}
 	}
-
 	return;
 }
 

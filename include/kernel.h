@@ -26,7 +26,8 @@ typedef	byte	bool8;		/* Boolean type				*/
 typedef	uint16	intmask;	/* saved interrupt mask			*/
 typedef	int32	ibid32;		/* index block ID (used in file system)	*/
 typedef	int32	dbid32;		/* data block ID (used in file system)	*/
-typedef uint32 	mutex_t;	/* MUTEX_T */
+typedef	uint32	mutex_t;	/* define mutex_t as 32-bit unsigned int */
+typedef int32 lid32; 		/* define lid32(lock id) as an int32 */
 
 /* Function declaration return types */
 
@@ -77,4 +78,4 @@ extern	struct queue	*readyqueue;
 
 /* config params */
 #define	AGING	TRUE		/* enable or disable aging? */
-#define QUANTUM	10 //2 //10		/* 10ms quantum length */
+#define	QUANTUM	10		/* time slice in msecs */

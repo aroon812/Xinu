@@ -61,7 +61,7 @@ SYSTEM_CFILES =								\
 	ionull.c	kill.c		kprintf.c	main.c		\
 	mkbufpool.c	newqueue.c	open.c		pci.c		\
 	putc.c		queue.c		read.c		ready.c		\
-	resched.c	\
+	resched.c	deadlock.c	lock.c \
 	resume.c	sched_cntl.c 	seek.c		semcount.c	\
 	semcreate.c	semdelete.c	semreset.c	\
 	signal.c	signaln.c	suspend.c	\

@@ -1,6 +1,7 @@
 /* resched.c - resched */
 
 #include <xinu.h>
+#include <resched.h>
 
 /**
  * Reschedule processor to next ready process
@@ -8,6 +9,25 @@
  */
 void	resched(void)		// assumes interrupts are disabled
 {
+	timer++;
+	if (timer == 50){
+		intmask mask = disable();   //disable interrupts
+		int i;
+    	for (i = 0; i < NRESOURCES; i++){
+        	resetVisited();
+        	deadlock_detect(i);
+    	}
+    	kprintf("\n");
+    	if(isDeadlocked() == 1)	{
+    		deadlock_recover();
+    	}
+    	reset();
+		timer = 0;
+		restore(mask); 
+	}
+	
+
+
 	pid32 oldpid = currpid;
 	struct procent *ptold;	// ptr to table entry for old process
 	struct procent *ptnew;	// ptr to table entry for new process
@@ -36,7 +56,8 @@ void	resched(void)		// assumes interrupts are disabled
 	if (AGING)
 		sched_age(readyqueue, oldpid, currpid);
 
-	preempt = QUANTUM; /* reset preemption timer */
+	//TODO
+	preempt = QUANTUM;
 
 	// Context switch to next ready process
 	ctxsw(&ptold->prstkptr, &ptnew->prstkptr);

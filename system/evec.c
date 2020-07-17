@@ -32,7 +32,7 @@ int32	initevec()
 	girmask = 0;	/* until vectors initialized */
 
 	for (i=0; i<NID; ++i) {
-		set_evec(i, (long)defevec[i]);	
+		set_evec(i, (long)defevec[i]);
 	}
 
 	/*
@@ -93,7 +93,7 @@ char *inames[] = {
 
 static long *fp;
 /*------------------------------------------------------------------------
- * trap -- print some debugging info when a trap occurred 
+ * trap -- print some debugging info when a trap occurred
  * Note: Need some more work.
  *------------------------------------------------------------------------
 */

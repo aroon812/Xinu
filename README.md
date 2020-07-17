@@ -1,3 +1,6 @@
+Iteration 4:
+Implemented deadlock detection and recovery using DFS on a resource allocation graph.
+
 Iteration 3:
 Extended Xinu to support a time-sharing environment and provide the OS with an atomic locking mechanism
 
